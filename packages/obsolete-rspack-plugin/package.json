@@ -1,8 +1,8 @@
 {
   "name": "obsolete-rspack-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
-  "description": "A Rspack plugin that generates a browser-side standalone script detecting browser compatibility based on Browserslist and prompts users to upgrade.",
+  "description": "一个基于 Browserslist 生成浏览器端独立检测脚本并提示用户升级浏览器的 Rspack 插件。",
   "keywords": [
     "rspack",
     "plugin",
