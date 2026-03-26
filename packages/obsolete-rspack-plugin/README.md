@@ -1,4 +1,4 @@
-# @liepin/obsolete-rspack-plugin
+# obsolete-rspack-plugin
 
 一个 Rspack 构建插件，基于 [Browserslist](https://github.com/browserslist/browserslist) 在浏览器端检测兼容性，当用户使用的浏览器不满足目标配置时，自动在页面中展示升级提示条。
 
@@ -35,7 +35,7 @@
 ## 安装
 
 ```sh
-npm i -D @liepin/obsolete-rspack-plugin
+npm i -D obsolete-rspack-plugin
 ```
 
 ## 快速开始
@@ -44,7 +44,7 @@ npm i -D @liepin/obsolete-rspack-plugin
 
 ```js
 const { HtmlRspackPlugin } = require('@rspack/core');
-const ObsoleteRspackPlugin = require('@liepin/obsolete-rspack-plugin');
+const ObsoleteRspackPlugin = require('obsolete-rspack-plugin');
 
 module.exports = {
   plugins: [
