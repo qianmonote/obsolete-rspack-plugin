@@ -46,6 +46,7 @@ class WebAsset {
    * @param {string} [context.position]
    * @param {boolean} [context.promptOnNonTargetBrowser]
    * @param {boolean} [context.promptOnUnknownBrowser]
+   * @param {number} [context.autoHide] Auto-dismiss delay in ms.
    * @returns {string}
    */
   composeCode(context) {
@@ -56,21 +57,36 @@ class WebAsset {
       promptOnUnknownBrowser: context.promptOnUnknownBrowser,
     };
     const slimOptions = removeEmptyValues(options);
+    const lines = [];
 
-    return (
-      this.fileContent +
-      [
-        indent(`(function() {`, 0),
-        indent(`'use strict';`, 2),
-        indent(
-          `new Obsolete(${stringify(slimOptions)}).test(${stringify(
-            context.browsers
-          )});`,
-          2
-        ),
-        indent(`})();\n`, 0),
-      ].join('\n')
-    );
+    lines.push(indent(`(function() {`, 0));
+    lines.push(indent(`'use strict';`, 2));
+
+    // Runtime dedup guard
+    lines.push(indent(`if (window.__obsolete_prompted__) return;`, 2));
+    lines.push(indent(`window.__obsolete_prompted__ = true;`, 2));
+
+    if (context.autoHide > 0) {
+      // Use the `done` callback of Obsolete.test() to start auto-hide timer
+      lines.push(indent(
+        `new Obsolete(${stringify(slimOptions)}).test(${stringify(context.browsers)}, function() {`,
+        2
+      ));
+      lines.push(indent(`setTimeout(function() {`, 4));
+      lines.push(indent(`var c = document.getElementById('obsoleteContainer');`, 6));
+      lines.push(indent(`if (c) c.parentNode.removeChild(c);`, 6));
+      lines.push(indent(`}, ${context.autoHide});`, 4));
+      lines.push(indent(`});`, 2));
+    } else {
+      lines.push(indent(
+        `new Obsolete(${stringify(slimOptions)}).test(${stringify(context.browsers)});`,
+        2
+      ));
+    }
+
+    lines.push(indent(`})();\n`, 0));
+
+    return this.fileContent + lines.join('\n');
   }
 }
 

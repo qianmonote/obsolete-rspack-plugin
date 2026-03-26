@@ -1,6 +1,6 @@
 {
-  "name": "@liepin/obsolete-rspack-plugin",
-  "version": "0.1.0",
+  "name": "obsolete-rspack-plugin",
+  "version": "1.0.0",
   "license": "MIT",
   "description": "A Rspack plugin that generates a browser-side standalone script detecting browser compatibility based on Browserslist and prompts users to upgrade.",
   "keywords": [
@@ -20,7 +20,9 @@
     "dev:basic": "rspack serve -c examples/basic/rspack.config.js",
     "dev:custom-template": "rspack serve -c examples/custom-template/rspack.config.js",
     "dev:custom-browsers": "rspack serve -c examples/custom-browsers/rspack.config.js",
-    "build:examples": "rspack build -c examples/basic/rspack.config.js && rspack build -c examples/custom-template/rspack.config.js && rspack build -c examples/custom-browsers/rspack.config.js"
+    "dev:styled-container": "rspack serve -c examples/styled-container/rspack.config.js",
+    "dev:auto-hide": "rspack serve -c examples/auto-hide/rspack.config.js",
+    "build:examples": "rspack build -c examples/basic/rspack.config.js && rspack build -c examples/custom-template/rspack.config.js && rspack build -c examples/custom-browsers/rspack.config.js && rspack build -c examples/styled-container/rspack.config.js && rspack build -c examples/auto-hide/rspack.config.js"
   },
   "dependencies": {
     "browserslist": "^4.24.0",
