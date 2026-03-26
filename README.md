@@ -1,110 +1,98 @@
-# Obsolete Webpack Plugin
+# obsolete-rspack-plugin
 
-[![npm](https://img.shields.io/circleci/project/github/ElemeFE/obsolete-webpack-plugin.svg)](https://circleci.com/gh/ElemeFE/obsolete-webpack-plugin) [![npm](https://ci.appveyor.com/api/projects/status/github/ElemeFE/obsolete-webpack-plugin?svg=true)](https://ci.appveyor.com/project/chikara-chan/obsolete-webpack-plugin) [![npm](https://img.shields.io/codecov/c/github/ElemeFE/obsolete-webpack-plugin.svg)](https://codecov.io/github/ElemeFE/obsolete-webpack-plugin) [![npm](https://img.shields.io/npm/v/obsolete-webpack-plugin.svg)](https://npmjs.com/package/obsolete-webpack-plugin) [![node](https://img.shields.io/node/v/obsolete-webpack-plugin.svg)](https://nodejs.org) [![npm](https://img.badgesize.io/https://unpkg.com/obsolete-web/dist/obsolete.min.js?compression=gzip)](https://unpkg.com/obsolete-web/dist/obsolete.min.js) [![licenses](https://img.shields.io/npm/l/obsolete-webpack-plugin.svg)](https://gitlab.alibaba-inc.com/eleme-fe-lpd/obsolete-webpack-plugin/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/obsolete-rspack-plugin.svg)](https://npmjs.com/package/obsolete-rspack-plugin) [![node](https://img.shields.io/node/v/obsolete-rspack-plugin.svg)](https://nodejs.org) [![licenses](https://img.shields.io/npm/l/obsolete-rspack-plugin.svg)](./LICENSE)
 
-## Introduction :star2:
+> 本项目基于 [ElemeFE/obsolete-webpack-plugin](https://github.com/ElemeFE/obsolete-webpack-plugin) 的核心功能改造而来，专为 Rspack 1.x 适配。
 
-A Webpack plugin generates a browser-side standalone script that detects browser compatibility based on [Browserslist](https://github.com/browserslist/browserslist) and prompts website users to upgrade it.
+## 简介
 
-## Motivation :collision:
+一个 Rspack 插件，在构建时生成一段浏览器端独立脚本，基于 [Browserslist](https://github.com/browserslist/browserslist) 检测浏览器兼容性，并在用户浏览器不满足目标配置时提示升级。
 
-In modern front-end development, we use toolchain to convert next JavaScript version into a backwards compatible version of JavaScript that works in older browser environment. For next syntax features, such as [Object Rest/Spread Properties](https://tc39.github.io/proposal-object-rest-spread/), [Exponentiation Operator](http://rwaldron.github.io/exponentiation-operator/), we can transform all of them through [AST](https://astexplorer.net/) parser. For next built-in features, such as [Promise](https://tc39.github.io/ecma262/#sec-promise-objects), [WeakMap](https://tc39.github.io/ecma262/#sec-weakmap-objects), [String.prototype.padstart](https://tc39.github.io/ecma262/#sec-string.prototype.padstart), we can provide pollyfills that mimic native functionality. However, for some browser only features, such as [Service Worker](https://w3c.github.io/ServiceWorker/), [WebAssembly](https://webassembly.github.io/spec/js-api/), [CSS Grid Layout](https://drafts.csswg.org/css-grid/), no polyfills support these or partially support. In the worst case, our users who use old browsers open a website but catch a sight of blank page. It may be a bad network condition, may be syntax parsing error, may be built-in losing. But they must not realize that the browser they using does not meet the requirements of our website target. Therefore, we need a mechanism to notify that they should upgrade their browser before accessing content. Thus, this plugin borns.
+## 环境要求
 
-## Getting Started :zap:
+- Node.js >= 18.0.0
+- Rspack ^1.0.0
 
-### Prerequisite
-
-- Node >=8.3.0
-- Webpack 4.x
-
-### Installation
+## 安装
 
 ```sh
-$ npm i -D obsolete-webpack-plugin
+npm i -D obsolete-rspack-plugin
 ```
 
-### Basic Usage
+## 基本用法
 
-Apply the plugin in your Webpack configuration, often used together with [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). By the way, the putting order of plugins is irrelevant.
+在 `rspack.config.js` 中引入插件，配合内置的 `HtmlRspackPlugin` 使用：
 
 ```js
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ObsoleteWebpackPlugin = require('obsolete-webpack-plugin');
+const { HtmlRspackPlugin } = require('@rspack/core');
+const ObsoleteRspackPlugin = require('obsolete-rspack-plugin');
 
 module.exports = {
   // ...
   plugins: [
-    // ...
-    new HtmlWebpackPlugin(),
-    new ObsoleteWebpackPlugin()
+    new HtmlRspackPlugin(),
+    new ObsoleteRspackPlugin()
   ]
 };
 ```
 
-### Best Practice
+## 配置项
 
-To improve first page load speed, you should always reduce render-blocking scripts as far as possible. For non-critical script, it's best to mark them with the `async` attribute. Thanks to [script-ext-html-webpack-plugin](https://github.com/numical/script-ext-html-webpack-plugin), we are able to fulfill this goal easily.
+| 名称 | 类型 | 默认值 | 说明 |
+| :-: | :-: | :-: | :-- |
+| name | string | `'obsolete'` | 生成的 chunk 名称 |
+| template | string | `'<div>Your browser is not supported. <button id="obsoleteClose">&times;</button></div>'` | 提示框的 HTML 模板，支持任意文档片段。点击带有 `id="obsoleteClose"` 的节点时提示框会被移除 |
+| position | string | `'afterbegin'` | `'afterbegin'` 将模板注入到 `<body>` 开头；`'beforeend'` 注入到 `<body>` 结尾 |
+| browsers | string[] | — | 覆盖全局 browserslist 配置，指定目标浏览器列表 |
+| promptOnNonTargetBrowser | boolean | `false` | 若为 `true`，当前浏览器不在目标列表中时也会显示提示 |
+| promptOnUnknownBrowser | boolean | `true` | 若为 `true`，无法识别的浏览器 UA 会显示提示 |
+
+## 示例
 
 ```js
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ObsoleteWebpackPlugin = require('obsolete-webpack-plugin');
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
+const { HtmlRspackPlugin } = require('@rspack/core');
+const ObsoleteRspackPlugin = require('obsolete-rspack-plugin');
 
 module.exports = {
-  // ...
   plugins: [
-    new HtmlWebpackPlugin(),
-    new ObsoleteWebpackPlugin({
-      name: 'obsolete'
-    }),
-    new ScriptExtHtmlWebpackPlugin({
-      async: 'obsolete'
+    new HtmlRspackPlugin(),
+    new ObsoleteRspackPlugin({
+      name: 'obsolete',
+      position: 'afterbegin',
+      browsers: ['chrome > 80', 'firefox > 70'],
+      promptOnNonTargetBrowser: false,
+      promptOnUnknownBrowser: true,
     })
   ]
 };
 ```
 
-## Configuration :book:
+## 浏览器支持
 
-### Options
+支持所有 Browserslist 查询语法所涵盖的浏览器。
 
-| Name | Type | Default | Description
-| :-: | :-: | :-: | :-:
-| name | string | `'obsolete'` | The chunk name.
-| template | string | `'<div>Your browser is not supported. <button id="obsoleteClose">&times;</button></div>'` | The prompt html template. It accepts any document fragment. E.g., `'<style>...</style><div>...</div><script>...</script>'`. Specially, the template will be removed when a node with attribute `id="obsoleteClose"` is clicked.
-| position | string | `'afterbegin'` | If set `'afterbegin'`, the template will be injected into the start of body. <br>If set `'beforeend'`, the template will be injected into the end of body.
-| browsers | string[] | | Browsers to support, overriding global browserslist configuration.
-| promptOnNonTargetBrowser | boolean | `false` | If the current browser useragent doesn't match one of the target browsers, it's considered as unsupported. Thus, the prompt will be shown. E.g., your browserslist configuration is `ie > 8`, by default, the prompt won't be shown on Chrome or Safari browser. E.g., your browserslist configuration is `ie > 8`, by default, the prompt won't be shown on Chrome or other browsers. Another e.g., your browserslist configuration is `chrome > 80`, by default, the prompt won't be shown on IE or other browsers.
-| promptOnUnknownBrowser | boolean | `true` | If the current browser useragent is unknown, the prompt will be shown.
+### 桌面端
 
-## Demonstration :art:
-
-![](https://fuss10.elemecdn.com/c/ee/57a564fb6b64c7cf8cf3ac37293c9gif.gif)
-
-## Browser Support :eyeglasses:
-
-The name matches Browserslist queries.
-
-### Desktop
-
-IE | Edge | Chrome | Safari | Firefox | Opera | Electron 
+IE | Edge | Chrome | Safari | Firefox | Opera | Electron
 :-: | :-: | :-: | :-: | :-: | :-: | :-:
-![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/archive/internet-explorer_9-11/internet-explorer_9-11_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/edge/edge_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/chrome/chrome_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/safari/safari_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/firefox/firefox_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/opera/opera_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/electron/electron_64x64.png)
+✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓
 
-### Mobile
+### 移动端
 
-ChromeAndroid | Android<br>(5+, WebView) | iOS<br>(OS)
+ChromeAndroid | Android WebView (5+) | iOS Safari
 :-: | :-: | :-:
-![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/chrome/chrome_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/android-webview-beta/android-webview-beta_64x64.png) | ![](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/46.1.0/safari-ios/safari-ios_64x64.png)
+✓ | ✓ | ✓
 
-## FAQ :tea:
+## 常见问题
 
-Q: Does this plugin support Yandex, Maxthon, UC or QQ browser?
+**Q: 支持 Yandex、UC、QQ 等浏览器吗？**
 
-A: Yep. This plugin supports those browsers based on the mainstream browser kernel, such as Chromium based browser, Mozilla based browser. In other words, `Chrome >= 30` will be also applied to Yandex browser, `ChromeAndroid >= 30` will be also applied to Android UC browser.
+A: 支持。对于基于主流内核的浏览器（如基于 Chromium 的 Yandex、基于 WebKit 的 UC），插件会将其映射到对应的内核版本进行判断。
 
-Q: Does plugin work in IE 6?
+**Q: 插件能在 IE 6 上运行吗？**
 
-A: Yep. This plugin supports browsers that implement the full [ES3 spec](https://www-archive.mozilla.org/js/language/E262-3.pdf). Although the source code is ES2015+, it will be compiled and shimmed to the target environment eventually.
+A: 支持。`obsolete-web` 库会被编译并 shim 到支持完整 ES3 规范的目标环境。
 
-<!-- ## External Links :anchor: -->
+## License
+
+MIT
