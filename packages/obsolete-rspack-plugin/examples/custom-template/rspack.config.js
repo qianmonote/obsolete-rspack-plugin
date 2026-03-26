@@ -38,6 +38,7 @@ module.exports = {
       template: path.resolve(__dirname, '../shared/template.html'),
     }),
     new ObsoleteRspackPlugin({
+      browsers: ['ie 11'],
       template: customTemplate,
       position: 'afterbegin',
       promptOnNonTargetBrowser: true,

@@ -13,7 +13,7 @@ document.getElementById('app').innerHTML = `
 })</code></pre>
   <h2>How it works</h2>
   <ul>
-    <li><code>zIndex</code> &mdash; sets <code>position:relative; z-index:99999</code> on the container</li>
+    <li><code>zIndex</code> &mdash; sets <code>position:fixed; top:0; left:0; right:0; z-index:99999</code> on the container</li>
     <li><code>containerStyle</code> &mdash; additional inline CSS, merged with zIndex styles</li>
     <li><code>containerClass</code> &mdash; CSS class for external stylesheet control</li>
     <li><code>closable: true</code> &mdash; explicitly enables the close button (default is <code>false</code>)</li>

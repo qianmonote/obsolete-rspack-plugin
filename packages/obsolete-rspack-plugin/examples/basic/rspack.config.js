@@ -15,7 +15,10 @@ module.exports = {
       title: 'Basic Demo - obsolete-rspack-plugin',
       template: path.resolve(__dirname, '../shared/template.html'),
     }),
-    new ObsoleteRspackPlugin(),
+    new ObsoleteRspackPlugin({
+      browsers: ['ie 11'],
+      promptOnNonTargetBrowser: true,
+    }),
   ],
   devServer: {
     port: 3001,

@@ -1,6 +1,6 @@
 {
   "name": "obsolete-rspack-plugin",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "license": "MIT",
   "description": "一个基于 Browserslist 生成浏览器端独立检测脚本并提示用户升级浏览器的 Rspack 插件。",
   "keywords": [

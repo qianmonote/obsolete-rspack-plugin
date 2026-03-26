@@ -16,6 +16,7 @@ module.exports = {
       template: path.resolve(__dirname, '../shared/template.html'),
     }),
     new ObsoleteRspackPlugin({
+      browsers: ['ie 11'],
       zIndex: 99999,
       containerStyle:
         'background:#fff3cd;color:#856404;padding:12px 20px;font-size:14px;text-align:center;border-bottom:1px solid #ffc107',

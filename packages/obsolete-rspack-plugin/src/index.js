@@ -2,10 +2,62 @@ const { resolve } = require('path');
 const browserslist = require('browserslist');
 const WebAsset = require('./web-asset');
 
-const DEFAULT_TEMPLATE_WITH_CLOSE =
-  '<div>Your browser is not supported. <button id="obsoleteClose">&times;</button></div>';
-const DEFAULT_TEMPLATE_WITHOUT_CLOSE =
-  '<div>Your browser is not supported.</div>';
+/** Default bar style — warm amber notification bar, visually self-contained */
+const DEFAULT_BAR_STYLE = [
+  'padding:12px 40px 12px 20px',
+  'background:#fff3cd',
+  'border-bottom:1px solid #ffc107',
+  'color:#664d03',
+  'font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+  'text-align:center',
+].join(';');
+
+const DEFAULT_TEMPLATE = `<div style="${DEFAULT_BAR_STYLE}">Your browser is not supported.</div>`;
+
+/** Default close button configuration */
+const DEFAULT_CLOSE_OPTIONS = {
+  text: '&times;',
+  ariaLabel: 'Close',
+  className: '',
+  style: '',
+};
+
+/** Base styles for the built-in close button */
+const CLOSE_BASE_STYLE = [
+  'position:absolute',
+  'top:50%',
+  'right:12px',
+  'transform:translateY(-50%)',
+  'padding:0',
+  'border:none',
+  'background:none',
+  'color:#999',
+  'font-size:18px',
+  'line-height:1',
+  'cursor:pointer',
+  'transition:color .2s',
+].join(';');
+
+/**
+ * Build the close button HTML from options.
+ *
+ * @param {Object} opts Merged close button options.
+ * @returns {string}
+ */
+function buildCloseButton(opts) {
+  const finalStyle = opts.style
+    ? `${CLOSE_BASE_STYLE};${opts.style}`
+    : CLOSE_BASE_STYLE;
+
+  const classes = ['obsolete-close-btn', opts.className].filter(Boolean).join(' ');
+
+  return [
+    '<style>.obsolete-close-btn:hover{color:#333}</style>',
+    `<button class="${classes}" id="obsoleteClose" aria-label="${opts.ariaLabel}" style="${finalStyle}">`,
+    opts.text,
+    '</button>',
+  ].join('');
+}
 
 class ObsoleteRspackPlugin {
   /**
@@ -28,8 +80,16 @@ class ObsoleteRspackPlugin {
    *   e.g. `'obsolete-bar'` or `'obsolete-bar warning'`.
    * @param {number} [options.autoHide] Auto-dismiss the prompt after the given milliseconds,
    *   e.g. `5000` will hide the bar after 5 seconds.
-   * @param {boolean} [options.closable=false] Whether to show the close button in the default
-   *   template. Only takes effect when `template` is not provided. Defaults to true.
+   * @param {boolean|Object} [options.closable=false] Whether to show a styled close button.
+   *   - `true`: show the default styled close button (`×` icon, circular background).
+   *   - `{ text, ariaLabel, className, style }`: customise the close button.
+   *     - `text` (string) — button inner HTML, default `'&times;'`.
+   *     - `ariaLabel` (string) — accessible label, default `'Close'`.
+   *     - `className` (string) — extra CSS class(es) appended to the button.
+   *     - `style` (string) — extra inline CSS appended to base styles,
+   *       e.g. `'right:20px;font-size:20px'`.
+   *   Works with both default and custom templates. If the template already contains
+   *   an element with `id="obsoleteClose"`, no extra button is injected.
    */
   constructor(options) {
     this.options = {
@@ -124,8 +184,9 @@ class ObsoleteRspackPlugin {
 
   /**
    * Build the final template string by:
-   *   1. Choosing the base template (user-supplied or default based on `closable`)
-   *   2. Wrapping it in a container div when `zIndex`, `containerStyle`, or `containerClass` is set
+   *   1. Choosing the base template (user-supplied or default)
+   *   2. Appending a styled close button when `closable: true` (if not already present)
+   *   3. Wrapping in a container div when `zIndex`, `containerStyle`, `containerClass`, or `autoHide` is set
    *
    * @returns {string|undefined}
    */
@@ -133,28 +194,42 @@ class ObsoleteRspackPlugin {
     const { template, closable, zIndex, containerStyle, containerClass, autoHide } = this.options;
 
     // 1. Resolve base template
-    let html = template;
-    if (!html) {
-      html = closable ? DEFAULT_TEMPLATE_WITH_CLOSE : DEFAULT_TEMPLATE_WITHOUT_CLOSE;
+    let html = template || DEFAULT_TEMPLATE;
+
+    // 2. Append close button if closable and not already present
+    if (closable && !html.includes('obsoleteClose')) {
+      const closeOpts = typeof closable === 'object'
+        ? { ...DEFAULT_CLOSE_OPTIONS, ...closable }
+        : { ...DEFAULT_CLOSE_OPTIONS };
+      html += buildCloseButton(closeOpts);
     }
 
-    // 2. Determine if we need a wrapper container
-    const needsWrapper = zIndex != null || containerStyle || containerClass || autoHide != null;
+    // 3. Determine if we need a wrapper container
+    const needsWrapper = zIndex != null || containerStyle || containerClass || autoHide != null || closable;
     if (!needsWrapper) {
       return html;
     }
 
-    // 3. Build inline style
+    // 4. Build inline style
     const styleParts = [];
     if (zIndex != null) {
-      styleParts.push(`position:relative`);
+      styleParts.push(`position:fixed`);
+      styleParts.push(`top:0`);
+      styleParts.push(`left:0`);
+      styleParts.push(`right:0`);
       styleParts.push(`z-index:${zIndex}`);
+    }
+    if (closable) {
+      // Ensure container is positioned so the absolute close button works
+      if (zIndex == null) {
+        styleParts.push(`position:relative`);
+      }
     }
     if (containerStyle) {
       styleParts.push(containerStyle);
     }
 
-    // 4. Build attributes
+    // 5. Build attributes
     const attrs = ['id="obsoleteContainer"'];
     if (styleParts.length > 0) {
       attrs.push(`style="${styleParts.join(';')}"`);
